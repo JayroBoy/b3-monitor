@@ -1,6 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Dynamic;
-using System.Runtime.CompilerServices;
+﻿using System.Net.Mail;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 
 namespace b3_monitor
 {
@@ -8,24 +9,34 @@ namespace b3_monitor
     {
         public static void Main(string[] args)
         {
-            string Token = args[0]; // Stock token
-            float RangeCeiling = float.Parse(args[1]); // IF the price goes above this, sell the stock
-            float RangeFloor = float.Parse(args[2]); // If the price goes below this, buy the stock
+            string Token = "PETR4"; //args[0]; // Stock token
+            float RangeFloor = 37.6f;//float.Parse(args[1]); // If the price goes below this, buy the stock
+            float RangeCeiling = 38.7f;//float.Parse(args[2]); // IF the price goes above this, sell the stock
+            int MinutesBetweenChecks = Frequency(args);
+
             while (true)
             {
-                Stock tokenInfo = GetCurrentPrice(Token);
+                Console.WriteLine($"Consultando preço do ativo {Token}");
+                Stock? tokenInfo = GetCurrentPrice(Token);
                 if (tokenInfo != null)
                 {
-                    if (tokenInfo.Price > RangeCeiling)
+                    Console.WriteLine($"Preço consultado! Atual: {tokenInfo.CurrentPrice}");
+                    if (tokenInfo.CurrentPrice > (float)RangeCeiling)
                     {
+                        Console.WriteLine("Valor dentro do intervalo de venda. Enviando e-mail...");
                         SendEmail(tokenInfo, "vender");
                     }
-                    else if (tokenInfo.Price < RangeFloor)
+                    else if (tokenInfo.CurrentPrice < (float)RangeFloor)
                     {
+                        Console.WriteLine("Valor dentro do intervalo de compra. Enviando e-mail...");
                         SendEmail(tokenInfo, "comprar");
                     }
+                } else
+                {
+                    Console.WriteLine($"Ativo {Token} não encontrado! Por favor, informe um ativo válido.");
+                    break;
                 }
-                Thread.Sleep(15 * 60 * 1000); // 15 minutes
+                Thread.Sleep(MinutesBetweenChecks * 60 * 1000); // 15 minutes by default
             }
         }
 
@@ -34,10 +45,13 @@ namespace b3_monitor
         /// </summary>
         /// <param name="token"> Stock token </param>
         /// <returns></returns>
-        public static Stock GetCurrentPrice(string token)
+        public static Stock? GetCurrentPrice(string token)
         {
-            // Check the API for the current value of the Token
-            return new Stock(token, 28.59f, "2021-09-01 10:00:00");
+            HttpClient client = new();
+            var json = client.GetStringAsync($"https://felipemarinho.vercel.app/api/b3/prices/{token}").Result;
+            Stock? result = JsonSerializer.Deserialize<Stock>(json);
+
+            return result;
         }
 
         /// <summary>
@@ -48,21 +62,56 @@ namespace b3_monitor
         /// <param name="price"> Current price of the stock. </param>
         public static void SendEmail(Stock token, string action)
         {
-            // Send an email to the user
-            string emailBody = $"Uma consulta do ativo {token.Token} " +
-                $"retornou o preço {token.Price}" +
-                $" na data e hora {token.LastUpdated}. " +
+            MailAddress Recipient = new("jayrobneto@gmail.com"); // TODO: Retrieve info from configuration file
+            string Subject = $"Ação recomendada para o ativo {token.Symbol}";
+            string Body = $"Uma consulta do ativo {token.Symbol} " +
+                $"retornou o preço {token.CurrentPrice}. " +
                 $"Aconselhamos que {action} o ativo.";
-            string emailSubject = $"Ação recomendada para o ativo {token.Token}";
-            // Send email to user
+            
+            Console.WriteLine(Recipient.Address);
+            Console.WriteLine(Subject);
+            Console.WriteLine(Body);
+        }
+
+        /// <summary>
+        /// Control structure to define minutes between API calls based on user-given parameter
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static int Frequency(string[] args)
+        {
+            switch (args.Length == 4 ? args[3] : "")
+            {
+                case "M5":
+                    return 5;
+                case "M10":
+                    return 10;
+                case "M15":
+                    return 15;
+                case "M30":
+                    return 30;
+                case "H1":
+                    return 1 * 60;
+                case "H2":
+                    return 2 * 60;
+                case "H3":
+                    return 3 * 60;
+                case "H4":
+                    return 4 * 60;
+                default:
+                    return 15;
+            }
         }
     }
 
-    public class Stock(string token, float price, string lastUpdated)
+    public class Stock()
     {
-        public float Price { get; set; } = price;
-        public string Token { get; set; } = token;
-        public DateTime LastUpdated { get; set; } = DateTime.Parse(lastUpdated);
+        [JsonPropertyName("currentPrice")]
+        public required float CurrentPrice { get; set; }
+        
+        [JsonPropertyName("symbol")]
+        public required string Symbol { get; set; }
+
     }
 }
 
