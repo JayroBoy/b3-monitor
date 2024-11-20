@@ -85,7 +85,7 @@ Payload de resposta:
 
 # Premissas
 
-- O e-mail só deve ser enviado uma vez para cada saída do intervalo. Ou seja, um ativo que caia abaixo do intervalo e fique abaixo durante 12h só deverá disparar um e-mail
+- O e-mail deve ser enviado sempre que a verificação indicar que o preço atual está fora do intervalo, ainda que na verificação anterior esse já fosse o caso.
 - Os valores informados estão inclusos no intervalo. Um ativo cujo preço seja **igual** a algum dos informados pelo usuário não deverá disparar um e-mail
 - O programa fará uma nova conferência de preços a cada 15 minutos (M15) em função do delay da  *Uma das metas adicionais desse projeto é implementar a possibilidade de escolha dessa frequência*
 - Caso o usuário informe um ativo que não existe, o programa deve encerrar a execução.
