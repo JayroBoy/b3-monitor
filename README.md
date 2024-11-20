@@ -36,50 +36,34 @@ Toda vez que o preço for menor que _linha-vermelha_, um e-mail deve ser dispara
 
 
 # Detalhes
-API de cotação escolhida: GET https://cotacao.b3.com.br/mds/api/v1/instrumentQuotation/{token}
+API de cotação escolhida: GET https://felipemarinho.vercel.app/api/b3/prices/{token}
 
 Payload de resposta:
 
-```{
-    "BizSts": {
-        "cd": "OK"
-    },
-    "Msg": {
-        "dtTm": "2024-11-15 15:12:14"
-    },
-    "Trad": [
-        {
-            "scty": {
-                "SctyQtn": {
-                    "opngPric": 39.82,
-                    "minPric": 39.82,
-                    "maxPric": 40.67,
-                    "avrgPric": 40.426,
-                    "curPrc": 40.54,
-                    "prcFlcn": 1.5276734
-                },
-                "mkt": {
-                    "nm": "Vista"
-                },
-                "symb": "PETR3",
-                "desc": "PETROBRAS   ON      N2",
-                "indxCmpnInd": true
-            },
-            "ttlQty": 12779
-        }
-    ]
+```
+{
+    "symbol": "PETR3",
+    "name": "PETROBRAS   ON      N2",
+    "market": "Vista",
+    "openingPrice": 41.43,
+    "minPrice": 40.88,
+    "maxPrice": 41.7,
+    "averagePrice": 41.226,
+    "currentPrice": 41.02,
+    "priceVariation": -1.2755716,
+    "indexComponentIndicator": true
 }
 ```
 # Etapas
-[ ] Configuração básica do projeto
+[x] Configuração básica do projeto
 
 [ ] Comunicação com a API de cotação
 
 [ ] Envio de e-mail
 
-[ ] Monitoramento contínuo
+[x] Monitoramento contínuo
 
-[ ] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
+[x] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
 
 *[ ] Possibilidade de escolha da frequência de verificação - Se der tempo*
 
