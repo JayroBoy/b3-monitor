@@ -12,54 +12,42 @@ namespace b3_monitor
     {
         public static void Main(string[] args)
         {
-            string Token = "PETR4";// args[0]; // Stock token
-            float RangeFloor = 40.2f;//float.Parse(args[1]); // If the price goes below this, buy the stock
-            float RangeCeiling = 41.2f;//float.Parse(args[2]); // IF the price goes above this, sell the stock
+            string Token = args[0]; // Stock token
+            float SellPrice = float.Parse(args[1]); // IF the price goes above this, sell the stock
+            float BuyPrice = float.Parse(args[2]); // If the price goes below this, buy the stock
             int MinutesBetweenChecks = Frequency(args);
 
-            if (RangeFloor > RangeCeiling || RangeFloor < 0)
+            if (BuyPrice > SellPrice || BuyPrice < 0)
             {
-                throw new ArgumentOutOfRangeException("args[1], args[2]", "Por favor, informe um intervalo válido!");
+                throw new ArgumentOutOfRangeException(paramName: "args[1], args[2]", message: "Por favor, informe um intervalo válido!");
             }
 
             while (true)
             {
                 Console.WriteLine($"Consultando preço do ativo {Token}");
-                Stock? tokenInfo = GetCurrentPrice(Token);
+                Stock? tokenInfo = Stock.GetCurrentPrice(Token);
                 if (tokenInfo != null)
                 {
                     Console.WriteLine($"Preço consultado! Atual: {tokenInfo.CurrentPrice}");
-                    if (tokenInfo.CurrentPrice > (float)RangeCeiling)
+                    if (tokenInfo.CurrentPrice > SellPrice)
                     {
                         Console.WriteLine("Valor dentro do intervalo de venda. Enviando e-mail...");
                         SendEmail(tokenInfo, "venda");
                     }
-                    else if (tokenInfo.CurrentPrice < (float)RangeFloor)
+                    else if (tokenInfo.CurrentPrice < BuyPrice)
                     {
                         Console.WriteLine("Valor dentro do intervalo de compra. Enviando e-mail...");
                         SendEmail(tokenInfo, "compre");
+                    } else
+                    {
+                        Console.WriteLine("Valor dentro do intervalo de monitoramento.");
                     }
                 } else
                 {
-                    Console.WriteLine($"Ativo {Token} não encontrado! Por favor, informe um ativo válido.");
-                    break;
+                    throw new ArgumentException(paramName: "Token", message: $"Ativo {Token} não encontrado! Por favor, informe um ativo válido.");
                 }
-                Thread.Sleep(MinutesBetweenChecks * 60 * 1000); // 15 minutes by default
+                Thread.Sleep(MinutesBetweenChecks * 60 * 1000); // 1 minute by default
             }
-        }
-
-        /// <summary>
-        /// Get the current price of a stock
-        /// </summary>
-        /// <param name="token"> Stock token </param>
-        /// <returns></returns>
-        public static Stock? GetCurrentPrice(string token)
-        {
-            HttpClient client = new();
-            var json = client.GetStringAsync($"https://felipemarinho.vercel.app/api/b3/prices/{token}").Result;
-            Stock? result = JsonSerializer.Deserialize<Stock>(json);
-
-            return result;
         }
 
         /// <summary>
@@ -153,6 +141,20 @@ namespace b3_monitor
         
         [JsonPropertyName("symbol")]
         public required string Symbol { get; set; }
+
+        /// <summary>
+        /// Get the current price of a stock
+        /// </summary>
+        /// <param name="token"> Stock token </param>
+        /// <returns></returns>
+        public static Stock? GetCurrentPrice(string token)
+        {
+            HttpClient client = new();
+            var json = client.GetStringAsync($"https://felipemarinho.vercel.app/api/b3/prices/{token}").Result;
+            Stock? result = JsonSerializer.Deserialize<Stock>(json);
+
+            return result;
+        }
 
     }
 }
