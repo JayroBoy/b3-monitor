@@ -1,10 +1,11 @@
-﻿using MailKit.Net.Smtp;
-using MailKit;
+﻿using MailKit;
+using MailKit.Net.Smtp;
 using MimeKit;
 using System.Configuration;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Diagnostics.Eventing.Reader;
+
 
 namespace b3_monitor
 {
@@ -15,8 +16,8 @@ namespace b3_monitor
         public static void Main(string[] args)
         {
             string Token = args[0]; // Stock token
-            float SellPrice = float.Parse(args[1]); // IF the price goes above this, sell the stock
-            float BuyPrice = float.Parse(args[2]); // If the price goes below this, buy the stock
+            float SellPrice = float.Parse(args[1].Replace(',', '.'), new CultureInfo("en-US")); // IF the price goes above this, sell the stock
+            float BuyPrice = float.Parse(args[2].Replace(',', '.'), new CultureInfo("en-US")); // If the price goes below this, buy the stock
             int MinutesBetweenChecks = Frequency(args);
 
             if (BuyPrice > SellPrice || BuyPrice < 0)
@@ -121,8 +122,9 @@ namespace b3_monitor
         /// <returns></returns>
         public static int Frequency(string[] args)
         {
-            return (args.Length == 4 ? args[3] : "") switch
+            return (args.Length == 4 ? args[3] : "M5") switch
             {
+                "M1" => 1,
                 "M5" => 5,
                 "M10" => 10,
                 "M15" => 15,
@@ -131,7 +133,7 @@ namespace b3_monitor
                 "H2" => 2 * 60,
                 "H3" => 3 * 60,
                 "H4" => 4 * 60,
-                _ => 1,
+                _ => 5
             };
         }
     }
