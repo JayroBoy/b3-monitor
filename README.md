@@ -57,19 +57,20 @@ Payload de resposta:
 # Etapas
 [x] Configuração básica do projeto
 
-[ ] Comunicação com a API de cotação
+[x] Comunicação com a API de cotação
 
-[ ] Envio de e-mail
+[x] Envio de e-mail
 
 [x] Monitoramento contínuo
 
-[x] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
+[ ] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
 
-*[ ] Possibilidade de escolha da frequência de verificação - Se der tempo*
+*[x] Possibilidade de escolha da frequência de verificação - Se der tempo*
 
 # Premissas
 
 - O e-mail deve ser enviado sempre que a verificação indicar que o preço atual está fora do intervalo, ainda que na verificação anterior esse já fosse o caso.
 - Os valores informados estão inclusos no intervalo. Um ativo cujo preço seja **igual** a algum dos informados pelo usuário não deverá disparar um e-mail
-- O programa fará uma nova conferência de preços a cada 15 minutos (M15) em função do delay da  *Uma das metas adicionais desse projeto é implementar a possibilidade de escolha dessa frequência*
+- O programa fará uma nova conferência de preços a cada 1 minuto (M1) *Uma das metas adicionais desse projeto é implementar a possibilidade de escolha dessa frequência*
 - Caso o usuário informe um ativo que não existe, o programa deve encerrar a execução.
+- Caso o usuário informe um intervalo inverso(Preço de compra maior do que preço de venda), o programa deve encerrar a execução.
