@@ -1,7 +1,10 @@
-﻿using System.Net.Mail;
+﻿using MailKit.Net.Smtp;
+using MailKit;
+using MimeKit;
+using System.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
+using System.Diagnostics.Eventing.Reader;
 
 namespace b3_monitor
 {
@@ -9,10 +12,15 @@ namespace b3_monitor
     {
         public static void Main(string[] args)
         {
-            string Token = "PETR4"; //args[0]; // Stock token
-            float RangeFloor = 37.6f;//float.Parse(args[1]); // If the price goes below this, buy the stock
-            float RangeCeiling = 38.7f;//float.Parse(args[2]); // IF the price goes above this, sell the stock
+            string Token = "PETR4";// args[0]; // Stock token
+            float RangeFloor = 40.2f;//float.Parse(args[1]); // If the price goes below this, buy the stock
+            float RangeCeiling = 41.2f;//float.Parse(args[2]); // IF the price goes above this, sell the stock
             int MinutesBetweenChecks = Frequency(args);
+
+            if (RangeFloor > RangeCeiling || RangeFloor < 0)
+            {
+                throw new ArgumentOutOfRangeException("args[1], args[2]", "Por favor, informe um intervalo válido!");
+            }
 
             while (true)
             {
@@ -24,12 +32,12 @@ namespace b3_monitor
                     if (tokenInfo.CurrentPrice > (float)RangeCeiling)
                     {
                         Console.WriteLine("Valor dentro do intervalo de venda. Enviando e-mail...");
-                        SendEmail(tokenInfo, "vender");
+                        SendEmail(tokenInfo, "venda");
                     }
                     else if (tokenInfo.CurrentPrice < (float)RangeFloor)
                     {
                         Console.WriteLine("Valor dentro do intervalo de compra. Enviando e-mail...");
-                        SendEmail(tokenInfo, "comprar");
+                        SendEmail(tokenInfo, "compre");
                     }
                 } else
                 {
@@ -58,19 +66,62 @@ namespace b3_monitor
         /// Send an email to the user
         /// </summary>
         /// <param name="token"> Stock Token</param>
-        /// <param name="action"> Either "vender" or "comprar" depending on the price</param>
+        /// <param name="action"> Either "venda" or "compre" depending on the price</param>
         /// <param name="price"> Current price of the stock. </param>
         public static void SendEmail(Stock token, string action)
         {
-            MailAddress Recipient = new("jayrobneto@gmail.com"); // TODO: Retrieve info from configuration file
-            string Subject = $"Ação recomendada para o ativo {token.Symbol}";
-            string Body = $"Uma consulta do ativo {token.Symbol} " +
-                $"retornou o preço {token.CurrentPrice}. " +
-                $"Aconselhamos que {action} o ativo.";
-            
-            Console.WriteLine(Recipient.Address);
-            Console.WriteLine(Subject);
-            Console.WriteLine(Body);
+            #region Assemble message
+            MailboxAddress from = new(
+                ConfigurationManager.AppSettings["from"],
+                ConfigurationManager.AppSettings["fromAddress"]
+            );
+
+            MailboxAddress to = new(
+                ConfigurationManager.AppSettings["recipient"],
+                ConfigurationManager.AppSettings["recipient"]
+            );
+
+            MimeMessage email = new()
+            {
+                Subject = $"Ação recomendada para o ativo {token.Symbol}",
+                Body = new TextPart()
+                {
+                    Text = $"Uma consulta do ativo {token.Symbol} " +
+                    $"retornou o preço {token.CurrentPrice}. " +
+                    $"Aconselhamos que {action} o ativo."
+                }
+            };
+
+            email.From.Add(from);
+            email.To.Add(to);
+            #endregion
+
+            using (var smtp = new SmtpClient()) {
+                try
+                {
+                    #region Connect and Authenticate
+                    smtp.Connect(
+                        host: ConfigurationManager.AppSettings["host"],
+                        port: Int32.Parse(ConfigurationManager.AppSettings["port"]),
+                        useSsl: Boolean.Parse(ConfigurationManager.AppSettings["enableSsl"])
+                    );
+
+                    smtp.Authenticate(
+                        userName: ConfigurationManager.AppSettings["userName"],
+                        password: ConfigurationManager.AppSettings["password"]
+                    );
+                    #endregion
+
+                    smtp.Send(email);
+                    Console.WriteLine("E-mail enviado!");
+
+                    smtp.Disconnect(true);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                } 
+
+            }
         }
 
         /// <summary>
@@ -80,27 +131,18 @@ namespace b3_monitor
         /// <returns></returns>
         public static int Frequency(string[] args)
         {
-            switch (args.Length == 4 ? args[3] : "")
+            return (args.Length == 4 ? args[3] : "") switch
             {
-                case "M5":
-                    return 5;
-                case "M10":
-                    return 10;
-                case "M15":
-                    return 15;
-                case "M30":
-                    return 30;
-                case "H1":
-                    return 1 * 60;
-                case "H2":
-                    return 2 * 60;
-                case "H3":
-                    return 3 * 60;
-                case "H4":
-                    return 4 * 60;
-                default:
-                    return 15;
-            }
+                "M5" => 5,
+                "M10" => 10,
+                "M15" => 15,
+                "M30" => 30,
+                "H1" => 1 * 60,
+                "H2" => 2 * 60,
+                "H3" => 3 * 60,
+                "H4" => 4 * 60,
+                _ => 1,
+            };
         }
     }
 
