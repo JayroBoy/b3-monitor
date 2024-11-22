@@ -3,11 +3,16 @@ Aplicação de _console_ feita para monitorar um ativo específico na B3 e avisa
 
 _Console application designed to monitor whether a specific token in the brazilian stock exchange(b3) stays within a given range, and send email notifications if the token leaves this range_
 # Instruções
-Para testar o programa, basta baixar o conteúdo da pasta "executável" e preencher o arquivo .config presente nela. Depois disso, em um sistema **win-x86**, navegue até o diretório onde o executável e o .config estão e, via linha de comando, invoque-o:
+Para testar o programa, basta baixar o conteúdo da pasta ```b3-monitor/executavel``` e preencher o arquivo .config presente nela. Depois disso, em um sistema **win-x86**, navegue até o diretório onde o executável e o .config estão e, via linha de comando, invoque-o:
 
 ```b3-monitor.exe {token} {preço_venda} {preço_compra} [{frequencia}]```
 
-O último parametro é opcional, aceitando os valores ```M1, M5, M10, M15, M30, H1, H2, H3, H4```, que indicam unidade(M ou H para minutos ou horas) e quantidade de tempo entre verificações. A verificação padrão ocorre de 5 em 5 minutos.
+O parâmetro ```token``` deve ser uma string que represente um ativo na b3.
+
+Os parâmetros ```preço_compra``` e ```preço_venda``` devem ser maiores do que zero, e ambos aceitam tanto ponto quanto vírgula como separador decimal. Além disso, o preço de compra deve ser **menor** do que o preço de venda.
+
+O parâmetro ```frequencia``` é opcional, aceitando os valores ```M1, M5, M10, M15, M30, H1, H2, H3ou H4```, que indicam unidade(M ou H para minutos ou horas) e quantidade de tempo entre verificações. A verificação padrão ocorre de 5 em 5 minutos.
+
 *OBS: A API escolhida consome uma API da B3 cujos valores são atualizados a cada 15 minutos*
 
 # Requisitos
@@ -72,7 +77,7 @@ Payload de resposta:
 
 [x] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
 
-*[x] Possibilidade de escolha da frequência de verificação - Se der tempo*
+*[x] Possibilidade de escolha da frequência de verificação*
 
 # Premissas
 
