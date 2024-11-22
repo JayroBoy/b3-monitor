@@ -2,6 +2,13 @@
 Aplicação de _console_ feita para monitorar um ativo específico na B3 e avisar, por e-mail, caso esse ativo saia de um _range_ informado no momento de início da execução.
 
 _Console application designed to monitor whether a specific token in the brazilian stock exchange(b3) stays within a given range, and send email notifications if the token leaves this range_
+# Instruções
+Para testar o programa, basta baixar o conteúdo da pasta "executável" e preencher o arquivo .config presente nela. Depois disso, em um sistema **win-x86**, navegue até o diretório onde o executável e o .config estão e, via linha de comando, invoque-o:
+
+```b3-monitor.exe {token} {preço_venda} {preço_compra} [{frequencia}]```
+
+O último parametro é opcional, aceitando os valores ```M1, M5, M10, M15, M30, H1, H2, H3, H4```, que indicam unidade(M ou H para minutos ou horas) e quantidade de tempo entre verificações. A verificação padrão ocorre de 5 em 5 minutos.
+*OBS: A API escolhida consome uma API da B3 cujos valores são atualizados a cada 15 minutos*
 
 # Requisitos
 O programa deve ser uma aplicação de console (não há necessidade de interface gráfica).
@@ -63,7 +70,7 @@ Payload de resposta:
 
 [x] Monitoramento contínuo
 
-[ ] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
+[x] Possibilidade de escolha do token e limitantes superiores e inferiores do intervalo
 
 *[x] Possibilidade de escolha da frequência de verificação - Se der tempo*
 
