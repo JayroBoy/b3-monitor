@@ -10,6 +10,8 @@ namespace b3_monitor
 {
     public class Program
     {
+        // Args: string, float, float, string?
+        //       token, ceiling, floor, frequency
         public static void Main(string[] args)
         {
             string Token = args[0]; // Stock token
@@ -31,12 +33,12 @@ namespace b3_monitor
                     Console.WriteLine($"Preço consultado! Atual: {tokenInfo.CurrentPrice}");
                     if (tokenInfo.CurrentPrice > SellPrice)
                     {
-                        Console.WriteLine("Valor dentro do intervalo de venda. Enviando e-mail...");
+                        Console.WriteLine($"Valor maior do que o mínimo de venda:{SellPrice}. Enviando e-mail...");
                         SendEmail(tokenInfo, "venda");
                     }
                     else if (tokenInfo.CurrentPrice < BuyPrice)
                     {
-                        Console.WriteLine("Valor dentro do intervalo de compra. Enviando e-mail...");
+                        Console.WriteLine($"Valor menor do que o máximo de compra: {BuyPrice}. Enviando e-mail...");
                         SendEmail(tokenInfo, "compre");
                     } else
                     {
